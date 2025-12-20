@@ -1,0 +1,1 @@
+# The-Physics-of-Truth-Resolving-the-Rigidity-Sycophancy-Trade-Off-with-Stress-Energy-Minimization
