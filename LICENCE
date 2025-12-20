@@ -1,0 +1,25 @@
+# License and Use Notice
+
+**This work, The Humility Adaptation Model (HAM), is licensed under the Creative Commons Attribution–NonCommercial–ShareAlike 4.0 International License (CC BY-NC-SA 4.0).**
+
+### Permitted Uses (Non-Commercial)
+* Academic research and publication
+* Educational use
+* Non-commercial experimentation and extension
+* Derivative works, provided they carry attribution and are released under the same license
+
+### Attribution Requirement
+Appropriate credit must be given to the author, **Ginevera Ramirez**, in any publication or derivative work.
+
+### Commercial Use
+Commercial deployment, integration into proprietary systems, or use in for-profit products is not covered under this license under this license.
+
+Organizations interested in commercial or large-scale operational deployment are encouraged to contact the author to discuss separate licensing or collaboration:
+* **Email:** [ginevera.ramirez.writer@gmail.com]
+* **GitHub:** [Submit an Issue in this Repository]
+
+### Rationale
+HAM is a tightly coupled framework whose components are interdependent. Commercial implementations benefit from author involvement to ensure fidelity, safety, and correct parameterization.
+
+---
+*(Full legal text: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode)*
