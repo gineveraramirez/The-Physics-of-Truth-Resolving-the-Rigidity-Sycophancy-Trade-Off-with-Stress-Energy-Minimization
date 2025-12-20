@@ -3,8 +3,7 @@
 #### Version: 1.0
 #### Author: Ginevera Ramirez
 
-
-​## Abstract
+## Abstract
 ​The Humility Adaptation Model (HAM) is a proposed alignment framework designed to resolve the "Sycophancy vs. Rigidity" trade-off in Large Language Models. Unlike standard Reinforcement Learning from Human/AI Feedback (RLHF/RLAIF), which operates on open-ended reward maximization (incentivizing hallucination and sycophancy), HAM utilizes a homeostatic control approach. It defines safety not as a constraint to be learned, but as an equilibrium state (S_{\text{target}}) to be maintained. HAM is neither a post-hoc wrapper nor an inference-time filter; it is a training-time objective that fundamentally modifies how models internalize uncertainty, correction, and safety boundaries.
 
 ![Paradigm Shift: Maximization vs Regulation](./HAM/download7.png)
