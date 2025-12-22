@@ -298,6 +298,7 @@ HAM's failure modes are diagnostic by design. Each traces to a specific paramete
 * Domain leakage $\rightarrow$ $k$ boundaries need refinement
 * Runaway traversal $\rightarrow$ $\lambda$ too low, increase friction
 * False verification $\rightarrow$ $k_{origin}$ miscalibrated
+* Global Mode Collapse: If the penalty for risk is weighted too heavily during training, the adaptive stiffness ($k$) may saturate globally. The distinct topographies of different domains erode, and the entire landscape may collapse into a single, global attractive basin.
 
 Unlike opaque failures in standard RLHF, HAM failures are legible and correctable.
 
