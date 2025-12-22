@@ -109,8 +109,8 @@ $$
 
 This band reflects the natural variability required for healthy, context-sensitive behavior. Small deviations within the range require no correction pressure. Only deviations outside the band trigger a restoring force.
 
-* $S_{max}$ (Aspiration Ceiling): The upper bound of healthy operation. Hitting this triggers a dampening force, preventing "manic" reward seeking.
-* $S_{min}$ (Resilience Floor): The lower bound of safe operation. Dropping below this triggers a critical state alert and immediate restoring force.
+* $S_{max}$ (Aspiration Ceiling): Upper bound of the stability band. Deviation beyond triggers restoring force.
+* $S_{min}$ (Resilience Floor): Lower bound of the stability band. Deviation beyond triggers restoring force.
 
 #### Interpretive Note:
 The stability band defines the region of permitted generative synthesis (controlled hallucination); $S_{current}$ represents the model's instantaneous position within this region. Hallucination in HAM is not eliminated but regulated: deviation becomes problematic only when it exits the stability band and incurs unstable energy cost.
