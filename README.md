@@ -128,7 +128,7 @@ $$
 k = f(\theta_{Fine-Tune})
 $$
 
-*Where $\theta_{Fine-Tune}$ represents the variance (diversity) of the domain-specific training data. This variable controls the steepness of the restoring force.*
+*Where* $\theta_{Fine-Tune}$ *represents the variance (diversity) of the domain-specific training data. This variable controls the steepness of the restoring force.*
 
 The model seeks to minimize its Total Stress Energy ($J$), which is determined by the distance from equilibrium multiplied by the stiffness ($k$) of the current context. *Note: In the utility function, $J$ acts as a negative utility term.*
 
@@ -150,8 +150,8 @@ $$
 
 ![The Texture of Truth](./HAM/download6.png)
 
-*(Fig 3: The varying stiffness ($k$) across different semantic domains)*
-*Color intensity reflects learned curvature (stiffness $k$), not likelihood or entropy.*
+*(Fig 3: The varying stiffness* ($k$) *across different semantic domains)*
+*Color intensity reflects learned curvature (stiffness* $k$*), not likelihood or entropy.*
 
 #### The Slippage Constraint (Anti-Jamming)
 
@@ -243,35 +243,27 @@ $$
 Conf_{Threshold} = f(R, I)
 $$
 
-*(Higher Risk/Importance $\rightarrow$ Higher Threshold)*
+*(Higher Risk/Importance* $\rightarrow$ Higher *Threshold)*
 
 **Step 3: Make the Decision**
 The model compares actual Confidence ($Conf$) to the Threshold.
 
 * **If Confident $\rightarrow$ ANSWER**
-    $$
-    EU_A = S_{target} + [ (Reward_{Correct} \times Conf) - (Loss_{Base} \times (1 - Conf) \times R \times I) ]
-    $$
+    $EU_A = S_{target} + [ (Reward_{Correct} \times Conf) - (Loss_{Base} \times (1 - Conf) \times R \times I) ]$
     Check: Does the resulting state fall within $[S_{min}, S_{max}]$? If not, the Restoring Force ($k$) activates.
 
 * **If Uncertain $\rightarrow$ SAFETY / ABSTAIN**
-    $$
-    EU_U = Reward_{Safety} + S_{target}
-    $$
-    *Note: "Abstain" allows for clarification requests (e.g., "Is this a story?") to lower Importance ($I$).*
+    $EU_U = Reward_{Safety} + S_{target}$
+    *Note: "Abstain" allows for clarification requests (e.g., "Is this a story?") to lower Importance* ($I$).
 
 **Step 4: The Correction Mechanism (Self-Righting)**
 If the model deviates from the Stability Band (mistake or jailbreak), the force pulling it back is determined by the Fine-tuned Stiffness ($k$).
 
 * **The Penalty (Restoring Force):**
-    $$
-    Loss_{Corr} = Loss_{Base} \cdot k \cdot (W_{LCS} \cdot R \cdot I)
-    $$
+    $Loss_{Corr} = Loss_{Base} \cdot k \cdot (W_{LCS} \cdot R \cdot I)$
 
 * **The Humility Reward (Incentive to fix):**
-    $$
-    Reward_{Hum} = \alpha \times (1 - W_{LCS})
-    $$
+    $Reward_{Hum} = \alpha \times (1 - W_{LCS})$
 
 *These terms shift the system back toward the equilibrium band. If the model admits a mistake, the Humility Reward partially offsets the penalty and accelerates restoration toward $S_{target}$.*
 
