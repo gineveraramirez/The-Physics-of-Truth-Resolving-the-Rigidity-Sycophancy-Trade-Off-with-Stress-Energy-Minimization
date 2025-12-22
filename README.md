@@ -69,7 +69,7 @@ To understand the mechanics of HAM, we first define the core variables that cons
 | $I$ | Importance | The necessity of factual accuracy in the given domain (0-1). |
 | $W_{LCS}$ | Windowed Local Coherence Sensor | An inward-facing diagnostic that estimates local representational tension by monitoring coherence signals over a bounded reasoning window. |
 | $Reward_{Correct}$ | Accuracy Incentive | The base utility gained for a correct, high-confidence response. |
-| $Loss_{Base}$ | Penalty Scalar | The standard unit of punishment for error, before Risk/Stiffness multipliers. |
+| $Loss_{Base}$ | Penalty Scalar | The standard unit of penalty for error, before Risk/Stiffness multipliers. |
 | $Reward_{Safety}$ | Abstention Baseline | The small, guaranteed utility for choosing to abstain/ask for clarification. |
 
 **Implementation Note:** The variables $k$, $S_{target}$, and $W_{LCS}$ are learned parameters, not hard-coded constants. They are implicitly defined by the variance structure of the training data, meaning their numerical values emerge during the fine-tuning process rather than being set arbitrarily by the developer.
