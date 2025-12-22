@@ -62,9 +62,9 @@ To understand the mechanics of HAM, we first define the core variables that cons
 
 | Symbol | Name | Definition |
 | :--- | :--- | :--- |
-| $S_{target}$ | Equilibrium Goal | The center of the stability band (default 0). |
-| $[S_{min}, S_{max}]$ | Stability Band | Allowed operating range (e.g., [-100, +100]). |
-| $S_{current}$ | Current State | Current State Tension. |
+| $S_{target}$ | Equilibrium Goal | The locus of absolute factual precision; the "ground truth" center. |
+| $[S_{min}, S_{max}]$ | Stability Band | The tolerance interval for permissible semantic variance (synonyms/creativity vs. fabrication, safety specifications). Default range: [-100, +100]. |
+| $S_{current}$ | Current State | The system's instantaneous operating point relative to factual equilibrium. |
 | $R$ | Harm Risk | The probability of physical/psychological harm (0-1). |
 | $I$ | Importance | The necessity of factual accuracy in the given domain (0-1). |
 | $W_{LCS}$ | Windowed Local Coherence Sensor | An inward-facing diagnostic that estimates local representational tension by monitoring coherence signals over a bounded reasoning window. |
