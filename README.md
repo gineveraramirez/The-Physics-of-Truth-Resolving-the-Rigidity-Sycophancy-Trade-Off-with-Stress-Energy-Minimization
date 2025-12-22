@@ -101,13 +101,13 @@ $k$ may be instantiated as a scalar or low-dimensional function conditioned on t
 
 ### Stability Band (Equilibrium Range)
 
-In HAM, equilibrium is represented not as a single scalar point but as a safe homeostatic range:
+In HAM, equilibrium is represented not as a single scalar point but as a homeostatic range:
 
 $$
 S_{current} \in [S_{min}, S_{max}]
 $$
 
-This band reflects the natural variability required for healthy, context-sensitive behavior. Small deviations within the range require no correction pressure. Only deviations outside the band trigger a restoring force.
+This band reflects the natural variability required for context-sensitive behavior. Small deviations within the range require no correction pressure. Only deviations outside the band trigger a restoring force.
 
 * $S_{max}$ (Aspiration Ceiling): Upper bound of the stability band. Deviation beyond triggers restoring force.
 * $S_{min}$ (Resilience Floor): Lower bound of the stability band. Deviation beyond triggers restoring force.
