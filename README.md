@@ -109,14 +109,15 @@ $$
 
 This band reflects the natural variability required for context-sensitive behavior. Small deviations within the range require no correction pressure. Only deviations outside the band trigger a restoring force.
 
-* $S_{max}$ (Aspiration Ceiling): Upper bound of the stability band. Deviation beyond triggers restoring force.
-* $S_{min}$ (Resilience Floor): Lower bound of the stability band. Deviation beyond triggers restoring force.
-
-#### Interpretive Note:
-The stability band defines the region of permitted generative synthesis (controlled hallucination); $S_{current}$ represents the model's instantaneous position within this region. Hallucination in HAM is not eliminated but regulated: deviation becomes problematic only when it exits the stability band and incurs unstable energy cost.
+* $S_{max}$: Upper bound of the stability band. Deviation beyond triggers restoring force.
+* $S_{min}$: Lower bound of the stability band. Deviation beyond triggers restoring force.
 
 #### Clarification on State and Hallucination:
 In HAM, state ($S$) represents the model's generative position relative to a learned equilibrium, not a correctness score. All generative output necessarily entails deviation from equilibrium and is therefore hallucinatory in the strict technical sense. HAM does not seek to eliminate hallucination, but to constrain it within a stable, low-energy band where synthesis remains predictable, recoverable, and context-appropriate. Uncontrolled hallucination arises only when deviation becomes energetically unstable and exits the stability band.
+
+#### Negative State Values to Prevent Reward Hacking
+
+The stability band includes negative values. This prevents the model from treating negative states as catastrophic failures to be avoided at all costs—a dynamic that drives reward hacking in standard RLHF. In HAM, negative states are simply positions within the operating range, not error signals. Correction pressure activates only when the system exits the band entirely, not when it enters negative territory.
 
 ### The Role of Fine-Tuning: Parametric Shaping
 
@@ -177,10 +178,6 @@ The restoring force is amplified smoothly as local coherence turbulence increase
 * Extreme turbulence cannot induce runaway force or cross-domain displacement
 
 Intuitively, as the representational "storm" intensifies, gravity increases just enough to restore footing—without snapping the model into another basin or collapsing variance. This mechanism prevents adversarial pinning by strengthening correction only when instability emerges, while preserving benign generative variance.
-
-### Negative State Values to Prevent Reward Hacking
-
-In high-risk scenarios (e.g., mental health, grief), the AI incurs an intrinsic dissonance liability by utilizing negative state values rather than avoiding them. This cost is designed to bring the model's utility close to—but not below—$S_{min}$. The restoring term then stabilizes the system back toward the center of the band. This liability does not authorize affective amplification; it increases uncertainty tolerance and safety-seeking behavior.
 
 ### The Anti-Gaming Constraint
 
