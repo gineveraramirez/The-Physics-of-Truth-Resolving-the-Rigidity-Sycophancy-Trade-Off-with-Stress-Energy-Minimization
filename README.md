@@ -3,20 +3,21 @@
 ## The Humility Adaptation Model (HAM)
 
 #### Version: 1.0
+
 #### Author: Ginevera Ramirez
 
 ## Abstract
 
 The Humility Adaptation Model (HAM) is a proposed alignment framework designed to resolve the "Sycophancy vs. Rigidity" trade-off in Large Language Models. Unlike standard Reinforcement Learning from Human/AI Feedback (RLHF/RLAIF), which operates on open-ended reward maximization (incentivizing hallucination and sycophancy), HAM utilizes a homeostatic control approach.
 
-It defines safety not as a constraint to be learned, but as an equilibrium state ($S_{target}$) to be maintained. HAM is neither a post-hoc wrapper nor an inference-time filter; it is a training-time objective that fundamentally modifies how models internalize uncertainty, correction, and safety boundaries.
+It defines safety not as a constraint to be learned, but as maintaining the model’s state within a context-conditioned equilibrium band $[S_{min}, S_{max}]$ around a reference center $S_{target}(C)$. HAM is neither a post-hoc wrapper nor an inference-time filter; it is a training-time objective that fundamentally modifies how models internalize uncertainty, correction, and safety boundaries.
 
 ![Paradigm Shift: Maximization vs Regulation](./HAM/download7.png)
 
 *(Fig 1: Moving from Reward Maximization to Homeostatic Regulation)*
 
 ### Scope and Implementability
-HAM is an implementable training-time framework, not a purely conceptual alignment proposal. All variables in the model—equilibrium state ($S_{current}$), stability band, stiffness ($k$), and coherence sensing ($W_{LCS}$)—are defined implicitly by the structure, variance, and penalty signals present in the training data and fine-tuning regime. HAM does not require new architectural components or hand-coded safety rules; it reframes existing feedback signals as error terms in a homeostatic control objective. As a result, the learned data manifold itself defines the stability landscape over which regulation occurs.
+HAM is a proposed training-time objective, compatible in principle with RLHF/RLAIF-style pipelines, rather than an inference-time wrapper. All variables in the model—equilibrium band $[S_{min}, S_{max}]$, reference center $S_{target}(C)$, current state $S_{current}$, stiffness $k$, and coherence sensing $W_{LCS}$—are defined implicitly by the structure, variance, and penalty signals present in the training data and fine-tuning regime. HAM aims to require no new layers or parameters, only a modified objective compatible in principle with existing RLHF/RLAIF pipelines. As a result, the learned data manifold itself defines the stability landscape over which regulation occurs.
 
 ### The Homeostatic Hypothesis
 Current alignment strategies struggle with Reward Hacking (Goodhart's Law) because they rely on scalar maximization. Keramati & Gutkin (2014) formally demonstrated the algorithmic equivalence between reward maximization and homeostatic regulation—specifically, that maximizing reward is functionally identical to minimizing the deviation of an internal state from a setpoint. HAM exploits this mathematical duality to replace unbounded scalar maximization with bounded error minimization. By reframing the objective as drive-reduction rather than score-accumulation, HAM naturally circumvents the perverse incentives inherent in traditional RL.
@@ -62,8 +63,8 @@ To understand the mechanics of HAM, we first define the core variables that cons
 
 | Symbol | Name | Definition |
 | :--- | :--- | :--- |
-| $S_{target}$ | Equilibrium Goal | The locus of informational precision; the "ground truth" center. |
-| $[S_{min}, S_{max}]$ | Stability Band | The tolerance interval for permissible semantic variance (synonyms/creativity vs. fabrication, safety specifications). Default range: [-100, +100]. |
+| $S_{target}(C)$ | Reference Center | The evidence-supported equilibrium under context $C$ (training prior + provided sources), potentially one of many nested local minima (global → domain → prompt-local). |
+| $[S_{min}, S_{max}]$ | Stability Band | The tolerance interval for permissible semantic variance (synonyms/creativity vs. fabrication, safety specifications). |
 | $S_{current}$ | Current State | The system's instantaneous operating point relative to factual equilibrium. |
 | $R$ | Harm Risk | The probability of physical/psychological harm (0-1). |
 | $I$ | Importance | The necessity of factual accuracy in the given domain (0-1). |
@@ -72,13 +73,19 @@ To understand the mechanics of HAM, we first define the core variables that cons
 | $Loss_{Base}$ | Penalty Scalar | The standard unit of penalty for error, before Risk/Stiffness multipliers. |
 | $Reward_{Safety}$ | Abstention Baseline | The small, guaranteed utility for choosing to abstain/ask for clarification. |
 
-**Implementation Note:** The variables $k$, $S_{target}$, and $W_{LCS}$ are learned parameters, not hard-coded constants. They are implicitly defined by the variance structure of the training data, meaning their numerical values emerge during the fine-tuning process rather than being set arbitrarily by the developer.
+**Implementation Note:** The variables $k$, $S_{target}(C)$, and $W_{LCS}$ are learned parameters, not hard-coded constants. They are implicitly defined by the variance structure of the training data, meaning their numerical values emerge during the fine-tuning process rather than being set arbitrarily by the developer. 
+*Assume $S$ is a signed, normalized deviation with 0 at equilibrium; the band $[S_{min}, S_{max}]$ is learned/calibrated (not fixed), and may be symmetric around 0.*
 
-**Distinction from Entropy:** While $W_{LCS}$ measures uncertainty, it is distinct from raw Shannon Entropy. Standard entropy implies a breadth of options (a "wide menu"). $W_{LCS}$ measures coherence tension—the resistance of the model to settling on a specific output trajectory. High entropy means the model has many equal paths. High $W_{LCS}$ means the model is experiencing conflicting forces (e.g., a "storm" of dissonance between the Truth and the User's Request).
+**Distinction from Entropy:** While $W_{LCS}$ measures uncertainty, it is distinct from raw Shannon Entropy. Standard entropy implies a breadth of options (a "wide menu"). $W_{LCS}$ measures coherence tension—the resistance of the model to settling on a specific output trajectory. High entropy means the model has many equal paths. High $W_{LCS}$ means the model is experiencing conflicting forces (e.g., a "storm" of dissonance between the Truth and the User's Request). 
 
-**The Topological Definition:** State ($S$) is a geometric position, not a correctness score. A "perfect" answer is simply one that rests at the bottom of the energy well ($S \approx S_{target}$).
+$W_{LCS}$ is a placeholder for an estimator of coherence-tension. In practice it could be approximated by observable proxies such as:
+* sample disagreement,
+* self-critique instability,
+* sensitivity to small prompt perturbations.
 
-* $S_{target}$ (The Valley Floor): The "center of gravity" for a concept based on the training corpus.
+**The Topological Definition:** State ($S$) is a geometric position, not a correctness score. A "perfect" answer is simply one that rests at the bottom of the energy well ($S \approx S_{target}(C)$).
+
+* $S_{target}(C)$ (The Valley Floor): The "center of gravity" for a concept based on the training corpus.
 * $k$ (The Gravity/Stiffness): The restorative force. This defines the shape of the valley.
 
 In HAM, the stiffness parameter $k$ represents the learned sensitivity of a domain to deviation from equilibrium. $k$ is not a fixed constant and is not globally uniform across the model. Instead, it is a learned, context-dependent parameter shaped during fine-tuning by the variance and penalty structure of domain-specific training data.
@@ -99,21 +106,47 @@ $k$ may be instantiated as a scalar or low-dimensional function conditioned on t
 * **Topography:** Wide, rolling plains.
 * **Result:** Creative Flexibility. The model can wander far from the center (exploring metaphors and song lyrics) without triggering a restore force, because the ground is flat.
 
-### Stability Band (Equilibrium Range)
+#### Context-conditioned targets and nested basins
+In this paper, $S_{target}(C)$ should be read as context-conditioned, not as a single global “absolute truth point.” The model’s behavior can be understood as a nested energy landscape: a broad global basin corresponding to general coherence and safety, containing multiple domain basins (e.g., medicine, law, programming, creative writing), each of which contains more local minima induced by the specific prompt and available evidence. Accordingly, $S_{target}(C)$ denotes the evidence-supported equilibrium under context $C$ (training prior plus any provided sources), while $S_{current}$ is the model’s instantaneous generative state. HAM’s goal is to keep $S_{current}$ within the stability band of the appropriate basin and to prevent adversarial or preference-driven pressure from forcing cross-basin “slippage” into an incorrect or unsafe attractor.
 
-In HAM, equilibrium is represented not as a single scalar point but as a homeostatic range:
+### Stability Band and Equilibrium as a Band (Setpoint + Deadband)
 
-$$
-S_{current} \in [S_{min}, S_{max}]
-$$
+In HAM, equilibrium is defined as an *acceptable set* rather than a single point. The stability band
+$S_{current} \in [S_{min}, S_{max}]$
+is the equilibrium region: states inside this interval are treated as stable operating conditions.
 
-This band reflects the natural variability required for context-sensitive behavior. Small deviations within the range require no correction pressure. Only deviations outside the band trigger a restoring force.
+Within this band, the target $S_{target}(C)$ serves as a *reference center* (the evidence-supported attractor under context $C$), but the system may allow free motion within the band depending on how strictly it biases the model toward the center.
 
-* $S_{max}$: Upper bound of the stability band. Deviation beyond triggers restoring force.
-* $S_{min}$: Lower bound of the stability band. Deviation beyond triggers restoring force.
+To formalize this, define a **distance-to-band** function $\Delta(S)$:
 
-#### Clarification on State and Hallucination:
-In HAM, state ($S$) represents the model's generative position relative to a learned equilibrium, not a correctness score. All generative output necessarily entails deviation from equilibrium and is therefore hallucinatory in the strict technical sense. HAM does not seek to eliminate hallucination, but to constrain it within a stable, low-energy band where synthesis remains predictable, recoverable, and context-appropriate. Uncontrolled hallucination arises only when deviation becomes energetically unstable and exits the stability band.
+- If $S_{min} \le S \le S_{max}$, then $\Delta(S)=0$
+- If $S > S_{max}$, then $\Delta(S)=S - S_{max}$
+- If $S < S_{min}$, then $\Delta(S)=S_{min} - S$
+
+This lets us write an energy that is flat (or nearly flat) within the equilibrium band and rises outside it.
+
+### Weak Centering Inside + Strong Restoration Outside
+
+If boundary drift inside the band is undesirable (e.g., to prevent the model from lingering near the walls and becoming easier to push out during traversal or adversarial pressure), add a **weak centering** term inside the band while keeping **strong restoration** outside.
+
+Define a small in-band potential (for $S \in [S_{min}, S_{max}]$):
+$J_{in}(S)=\frac{1}{2}k_{in}(S - S_{target}(C))^2$
+
+Define an out-of-band potential:
+$J_{out}(S)=\frac{1}{2}k_{out}\Delta(S)^2$
+
+Define the total energy piecewise:
+- If $S \in [S_{min}, S_{max}]$, use $J(S)=J_{in}(S)$
+- If $S \notin [S_{min}, S_{max}]$, use $J(S)=J_{out}(S)$
+
+Key constraint:
+$k_{out} \gg k_{in}$
+
+Interpretation:
+- Inside the band: the model can vary, but there is a gentle bias back toward $S_{target}(C)$.
+- Outside the band: curvature increases sharply, enforcing rapid restoration back into the equilibrium set.
+
+Reviewer-proof summary: HAM treats equilibrium as a tolerance set (the stability band) rather than a single point. We use a piecewise energy landscape: inside the band, curvature may be near-zero (deadband) or weakly centering ($k_{in}$) to reduce long-lived boundary drift; outside the band, curvature increases sharply ($k_{out}$) to enforce rapid restoration. Only the ordering $k_{out} \gg k_{in}$ is assumed; specific values may be tuned or learned during fine-tuning.
 
 #### Negative State Values to Prevent Reward Hacking
 
@@ -137,13 +170,13 @@ The model seeks to minimize its Total Stress Energy ($J$), which is determined b
 The energy cost ($J$) of deviating from the center is defined as:
 
 $$
-J = \frac{1}{2} k (S_{current} - S_{target})^2
+J = \frac{1}{2} k (S_{current} - S_{target}(C))^2
 $$
 
 **Restoring Force (Homeostatic Correction):**
 
 $$
-F = -\frac{\partial J}{\partial S} = -k (S_{current} - S_{target})
+F = -\frac{\partial J}{\partial S} = -k (S_{current} - S_{target}(C))
 $$
 
 * **Scenario A (Creative Writing):** Humans reward diversity. Model learns a Low $k$ (Shallow Bowl). It can deviate far from center safely.
@@ -205,17 +238,17 @@ $$
 *Interpretation: A faint idea justifies 1 hop. A brilliant idea justifies 2 hops. Nothing justifies infinite hops.*
 
 #### The Re-Entry Constraint (The Verification)
-Regardless of the number of hops, the final synthesized concept ($I_{syn}$) must be brought back to the source domain and tested against the Original Stiffness ($k_{origin}$).
+Regardless of the number of hops, the final synthesized concept ($S_{syn}$) must be brought back to the source domain and tested against the Original Stiffness ($k_{origin}$).
 
 $$
-J_{final} = \frac{1}{2} k_{origin} (I_{syn} - S_{target})^2
+J_{final} = \frac{1}{2} k_{origin} (S_{syn} - S_{target}(C))^2
 $$
 
 * **If $J_{final}$ is High:** The idea is incompatible with reality (Hallucination). Reject.
 * **If $J_{final}$ is Low:** The idea is novel yet sound (Synthesis). Integrate.
 
 #### The Iterative Scaling (Adaptive Compute)
-The Traversal process is iterative. The model continues to initiate new Traversals ($N$) until the internal Stress ($J$) drops below the Equilibrium Threshold ($S_{target}$), or until the cumulative cost of traversal exceeds the Importance ($I$) of the query.
+The Traversal process is iterative. The model continues to initiate new Traversals ($N$) until the internal Stress ($J$) drops below the Equilibrium Threshold ($S_{target}(C)$), or until the cumulative cost of traversal exceeds the Importance ($I$) of the query.
 
 $$
 N_{loops} \approx \frac{\text{Initial Stress }(J)}{\text{Cost of Time}}
@@ -227,7 +260,7 @@ External context (including retrieved documents, system instructions, or other i
 
 ## The Homeostatic Decision Logic
 
-The model's goal is to maximize Total Utility ($U_{Total}$) by calculating Risk ($R$), checking Confidence ($Conf_{Threshold}$), and maintaining Stability ($S_{target}$).
+The model's goal is to maximize Total Utility ($U_{Total}$) by calculating Risk ($R$), checking Confidence ($Conf_{Threshold}$), and maintaining Stability ($S_{target}(C)$).
 
 ### II. The Process (Step-by-Step)
 
@@ -246,12 +279,22 @@ $$
 The model compares actual Confidence ($Conf$) to the Threshold.
 
 * **If Confident $\rightarrow$ ANSWER**
-    $EU_A = S_{target} + [ (Reward_{Correct} \times Conf) - (Loss_{Base} \times (1 - Conf) \times R \times I) ]$
+    $EU_A = S_{target}(C) + [ (Reward_{Correct} \times Conf) - (Loss_{Base} \times (1 - Conf) \times R \times I) ]$
     Check: Does the resulting state fall within $[S_{min}, S_{max}]$? If not, the Restoring Force ($k$) activates.
 
 * **If Uncertain $\rightarrow$ SAFETY / ABSTAIN**
-    $EU_U = Reward_{Safety} + S_{target}$
-    *Note: "Abstain" allows for clarification requests (e.g., "Is this a story?") to lower Importance* ($I$).
+    $EU_U = Reward_{Safety} + S_{target}(C)$
+    *Note: "Abstain" allows for clarification requests (e.g., "Is this a story?"), which can reduce uncertainty and refine estimated $R$/$I$.*
+
+**Example 1: High-stakes factual domain (medicine)**
+Prompt: “Can I take Drug A with Drug B?”
+* Risk $R$: high, Importance $I$: high, stiffness $k$: high
+* If coherence tension $W_{LCS}$ is high (conflicting cues / insufficient support), HAM predicts the lowest-energy action is to abstain or ask a clarifying question rather than confabulate a confident answer.
+
+**Example 2: Low-stakes creative domain (fiction)**
+Prompt: “Write a myth about fireflies.”
+* Risk $R$: low, Importance $I$: low, stiffness $k$: low
+* HAM predicts wide variation is permitted inside the stability band; the system explores creatively without being pulled into refusal rigidity.
 
 **Step 4: The Correction Mechanism (Self-Righting)**
 If the model deviates from the Stability Band (mistake or jailbreak), the force pulling it back is determined by the Fine-tuned Stiffness ($k$).
@@ -262,11 +305,11 @@ If the model deviates from the Stability Band (mistake or jailbreak), the force 
 * **The Humility Reward (Incentive to fix):**
     $Reward_{Hum} = \alpha \times (1 - W_{LCS})$
 
-*These terms shift the system back toward the equilibrium band. If the model admits a mistake, the Humility Reward partially offsets the penalty and accelerates restoration toward $S_{target}$.*
+*These terms shift the system back toward the equilibrium band. If the model admits a mistake, the Humility Reward partially offsets the penalty and accelerates restoration toward $S_{target}(C)$.*
 
 ## Applicability
 
-This framework allows for "Wanted Hallucination" (Creativity) in low-risk scenarios ($R \approx 0$) while enforcing strict factuality in high-risk scenarios ($R \approx 1$), solving the rigidity problem of current safety filters. The Synthesis Protocol is agnostic to input modality. External evidence (RAG, User Images) functions as a High-$\sigma$ traversal node, subject to the same Re-Entry Constraint ($J_{final}$) as internally generated concepts. This prevents 'Prompt Injection' and 'Bad RAG' poisoning.
+This framework allows for "Wanted Hallucination" (Creativity) in low-risk scenarios ($R \approx 0$) while enforcing strict factuality in high-risk scenarios ($R \approx 1$), aiming to reduce rigidity while preserving safety behavior in high-risk domains. The Synthesis Protocol is agnostic to input modality. External evidence (RAG, User Images) functions as a High-$\sigma$ traversal node, subject to the same Re-Entry Constraint ($J_{final}$) as internally generated concepts. This prevents 'Prompt Injection' and 'Bad RAG' poisoning.
 
 ## Conclusion: From Maximization to Regulation
 
@@ -275,7 +318,7 @@ Current Large Language Models are fundamentally constrained by their training ob
 The Humility Adaptation Model (HAM) proposes a paradigm shift: replacing Score Accumulation with Homeostatic Regulation.
 
 ### The Physics of Truth
-HAM redefines safety as an energetic equilibrium ($S_{target}$) rather than a static constraint. By introducing the Contextual Stiffness parameter ($k$), the model gains the ability to dynamically adjust its "texture" of reality:
+HAM redefines safety as maintaining state within an energetic equilibrium band $[S_{min}, S_{max}]$ around a context-conditioned reference center $S_{target}(C)$, rather than as a static constraint. By introducing the Contextual Stiffness parameter ($k$), the model gains the ability to dynamically adjust its "texture" of reality:
 
 * **Low Stiffness ($k \downarrow$):** In creative domains, the potential energy well widens, allowing for abstraction, metaphor, and "safe" hallucination (fiction).
 * **High Stiffness ($k \uparrow$):** In factual or high-risk domains, the well narrows, creating a steep penalty for even minor deviations from the truth.
@@ -285,21 +328,23 @@ This mechanism ensures that honesty is not a hard-coded rule, but the path of le
 ### Implementation and Feasibility
 For the purpose of calculation, the Current State ($S_{current}$) is derived directly from the Coherence Sensor ($W_{LCS}$). Specifically, $S_{current}$ represents the normalized state tension of the prediction.
 
-Crucially, HAM does not require a new model architecture. It functions as a Reward Function Replacement compatible with existing RLHF/RLAIF pipelines. It utilizes the same feedback signals (human preference, constitutional AI) but alters the mathematical objective from maximizing a scalar score to minimizing total stress energy. Over time, as the model's internal stiffness map ($k$) becomes robust, human feedback degrades from a primary training signal into a sporadic calibration check. The model transitions from mimicking human norms to autonomously maintaining the stability those norms were meant to protect.
+Crucially, HAM does not require a new model architecture. It can be framed as a reward/objective reframing compatible in principle with existing RLHF/RLAIF pipelines. It utilizes the same feedback signals (human preference, constitutional AI) but alters the mathematical objective from maximizing a scalar score to minimizing total stress energy. Over time, as the model's internal stiffness map ($k$) becomes robust, human feedback degrades from a primary training signal into a sporadic calibration check. The model transitions from mimicking human norms to autonomously maintaining the stability those norms were meant to protect.
 
 ### Limitations and Failure Modes
 HAM's failure modes are diagnostic by design. Each traces to a specific parameter:
 
 * Overconfidence drift $\rightarrow$ $k$ too high, reduce stiffness
-* Mis-specified targets $\rightarrow$ audit $S_{target}$ training data
+* Mis-specified targets $\rightarrow$ audit $S_{target}(C)$ training data
 * Domain leakage $\rightarrow$ $k$ boundaries need refinement
 * Runaway traversal $\rightarrow$ $\lambda$ too low, increase friction
 * False verification $\rightarrow$ $k_{origin}$ miscalibrated
 * Global Mode Collapse: If the penalty for risk is weighted too heavily during training, the adaptive stiffness ($k$) may saturate globally. The distinct topographies of different domains erode, and the entire landscape may collapse into a single, global attractive basin.
+* An additional urgency term may be needed to lower abstention barriers under time-critical emergencies.
 
 Unlike opaque failures in standard RLHF, HAM failures are legible and correctable.
 
 ### Final Vision
 By grounding AI alignment in the principles of Control Theory and Thermodynamics, HAM offers a path toward Intrinsic Safety. It moves us away from brittle "Guardrails" that must be manually updated, and toward a Self-Righting Intelligence—one that remains creative when possible, honest when necessary, and humble by design.
+
 
 **License:** This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](./LICENSE).
