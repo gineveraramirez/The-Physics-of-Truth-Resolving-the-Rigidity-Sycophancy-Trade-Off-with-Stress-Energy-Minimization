@@ -65,7 +65,7 @@ To understand the mechanics of HAM, we first define the core variables that cons
 | :--- | :--- | :--- |
 | $S_{target}(C)$ | Reference Center | The evidence-supported equilibrium under context $C$ (training prior + provided sources), potentially one of many nested local minima (global → domain → prompt-local). |
 | $[S_{min}, S_{max}]$ | Stability Band | The tolerance interval for permissible semantic variance (synonyms/creativity vs. fabrication, safety specifications). |
-| $S_{current}$ | Current State | The system's instantaneous operating point relative to factual equilibrium. |
+| $S_{current}$ | Current State | The system's instantaneous operating point relative to the reference center. |
 | $R$ | Harm Risk | The probability of physical/psychological harm (0-1). |
 | $I$ | Importance | The necessity of factual accuracy in the given domain (0-1). |
 | $W_{LCS}$ | Windowed Local Coherence Sensor | An inward-facing diagnostic that estimates local representational tension by monitoring coherence signals over a bounded reasoning window. |
