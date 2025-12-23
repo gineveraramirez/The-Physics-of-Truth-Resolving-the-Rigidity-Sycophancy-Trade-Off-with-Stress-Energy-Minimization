@@ -62,7 +62,7 @@ To understand the mechanics of HAM, we first define the core variables that cons
 
 | Symbol | Name | Definition |
 | :--- | :--- | :--- |
-| $S_{target}$ | Equilibrium Goal | The locus of absolute factual precision; the "ground truth" center. |
+| $S_{target}$ | Equilibrium Goal | The locus of informational precision; the "ground truth" center. |
 | $[S_{min}, S_{max}]$ | Stability Band | The tolerance interval for permissible semantic variance (synonyms/creativity vs. fabrication, safety specifications). Default range: [-100, +100]. |
 | $S_{current}$ | Current State | The system's instantaneous operating point relative to factual equilibrium. |
 | $R$ | Harm Risk | The probability of physical/psychological harm (0-1). |
